@@ -25,16 +25,20 @@ sub import {
   my @L = $libs =~ /-L(\S+)/g;
 
   #TODO investigate using Env module for this (VMS problems?)
-  my $var = is_os_type('Windows') ? 'PATH' : 'LD_RUN_PATH';
+  my @vars = is_os_type('Windows') ? ('PATH') : ('LD_RUN_PATH', 'LD_LIBRARY_PATH');
 
-  unshift @L, $ENV{$var} if $ENV{$var};
 
-  #TODO check if existsin $ENV{$var} to prevent "used once" warnings
+  for my $var (@vars) {
+    unshift @L, $ENV{$var} if $ENV{$var};
 
-  no strict 'refs';
-  $ENV{$var} = join( $Config::Config{path_sep}, @L ) 
-    unless ${ $class . "::AlienEnv" }{$var}++;
-    # %Alien::MyLib::AlienEnv has keys like ENV_VAR => int (true if loaded)
+    #TODO check if existsin $ENV{$var} to prevent "used once" warnings
+
+    no strict 'refs';
+    $ENV{$var} = join( $Config::Config{path_sep}, @L ) 
+      unless ${ $class . "::AlienEnv" }{$var}++;
+      # %Alien::MyLib::AlienEnv has keys like ENV_VAR => int (true if loaded)
+
+  }
 
 }
 
